@@ -58,13 +58,13 @@ int main(){
 			response=malloc(strlen(resp));
 			strcpy(response,resp);
 		}
-		else if(strcmp(route,"/owo")==0){
+		else if(strcmp(route,"/test")==0){
 			response=malloc(5);
-			strcpy(response,"owo");
+			strcpy(response,"test");
 		}
 		else {
 			response=malloc(5);
-			strcpy(response,"uwu");
+			strcpy(response,"404");
 		}
 		if(write(new,response,strlen(response))<0){
 			printf("write error\n");

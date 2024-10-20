@@ -8,3 +8,9 @@ struct requestData {
 	char userAgent[1024];
 	char cookies[1024];
 };
+struct paramNode {
+	char* key;
+	char* value;
+	struct paramNode* left;
+	struct paramNode* right;
+};
