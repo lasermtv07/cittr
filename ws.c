@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "parse.c"
+#include "bst.c"
 
 #define MAX_CONN 256
 int main(){
@@ -41,6 +42,7 @@ int main(){
 	struct requestData a;
 	char* route;
 	char* response;
+	struct paramNode* get=newNode(".",".");
 	for(;;){
 		int new=accept(sock,(struct sockaddr*)&ad,(socklen_t*)&al);
 		if(new<0){
@@ -50,6 +52,14 @@ int main(){
 		read(new,reqinfo,102400);
 		parseRequest(&a,reqinfo);
 		printf("Request: %d\nRoute: %s\nUseragent:%s\ncookies:%s\n",a.reqType,a.route,a.userAgent,a.cookies);
+
+		getGet(a.route,get);
+		if(searchNode(get,"tst")!=NULL){
+			printf("tst get value:%s\n",searchNode(get,"tst"));
+		}
+		else {
+			printf("get: tst isn't set!\n");
+		}
 		//printf("%s\n",reqinfo);
 		route=malloc(strlen(a.route));
 		strcpy(route,getRoute(a.route));

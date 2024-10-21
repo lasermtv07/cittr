@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "structs.c"
-
+#include "bst.c"
 void parseRequest(struct requestData *a,char str[]){
 	char* string=malloc(strlen(str));
 	strcpy(string,str);
@@ -31,22 +31,29 @@ void parseRequest(struct requestData *a,char str[]){
 		tok=strtok(NULL,"\n");
 	}
 }
+//adds key value pair
+void addKVP(struct paramNode* a,char* string){
+	char*string2=malloc(strlen(string));
+	strcpy(string2,string);
+	char* tok=strtok(string2,"=");
+	char* key=malloc(strlen(string));
+	strcpy(key,tok);
+	tok=strtok(NULL,"=");
+	char* value=malloc(strlen(string));
+	strcpy(value,tok);
+	insertNode(a,key,value);
+}
 
-char* getGet(char string[], char search[]){
+void getGet(char string[], struct paramNode* a){
+	if(a==NULL) printf("lmso");
 	char* string2=malloc(strlen(string));
 	strcpy(string2,string);
 	char* tok=strtok(string2,"?");
-	char *out=NULL;
 	tok=strtok(NULL,"&");
 	while(tok!=NULL){
-		if(strncmp(tok,search,strlen(search)-1)==0){
-			out=malloc(strlen(tok));
-			strcpy(out,tok+strlen(search)+1);
-			return out;
-		}
+		addKVP(a,tok);
 		tok=strtok(NULL,"&");
 	}
-	return NULL;
 }
 //for extracting route from GET params
 char* getRoute(char string[]){
@@ -55,3 +62,4 @@ char* getRoute(char string[]){
 	char*tok=strtok(string2,"?");
 	return tok;
 }
+
