@@ -49,6 +49,8 @@ void insertNode(struct paramNode* root,char k[],char v[]){
 			else insertNode(root->right,key,value);
 		}
 	}
+	free(key);
+	free(value);
 }
 char* searchNode(struct paramNode* root,char key[]){
 	if(strcmp(root->key,key)==0){

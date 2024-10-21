@@ -60,10 +60,9 @@ int main(){
 		else {
 			printf("get: tst isn't set!\n");
 		}
-		//printf("%s\n",reqinfo);
-		route=malloc(strlen(a.route));
-		strcpy(route,getRoute(a.route));
-		//printf("%s\n",route);
+		printf("%s\n",reqinfo);
+		route=getRoute(a.route);
+		printf("%s\n",route);
 		if(strcmp(route,"/")==0){
 			response=malloc(strlen(resp));
 			strcpy(response,resp);

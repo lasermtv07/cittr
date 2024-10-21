@@ -30,6 +30,9 @@ void parseRequest(struct requestData *a,char str[]){
 		}
 		tok=strtok(NULL,"\n");
 	}
+	free(string);
+	free(tok);
+	free(temp);
 }
 //adds key value pair
 void addKVP(struct paramNode* a,char* string){
@@ -42,6 +45,7 @@ void addKVP(struct paramNode* a,char* string){
 	char* value=malloc(strlen(string));
 	strcpy(value,tok);
 	insertNode(a,key,value);
+	free(string2);
 }
 
 void getGet(char string[], struct paramNode* a){
@@ -54,7 +58,9 @@ void getGet(char string[], struct paramNode* a){
 		addKVP(a,tok);
 		tok=strtok(NULL,"&");
 	}
+	free(string2);
 }
+
 //for extracting route from GET params
 char* getRoute(char string[]){
 	char* string2=malloc(strlen(string));
