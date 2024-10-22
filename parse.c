@@ -49,7 +49,6 @@ void addKVP(struct paramNode* a,char* string){
 }
 
 void getGet(char string[], struct paramNode* a){
-	if(a==NULL) printf("lmso");
 	char* string2=malloc(strlen(string));
 	strcpy(string2,string);
 	char* tok=strtok(string2,"?");
@@ -67,5 +66,53 @@ char* getRoute(char string[]){
 	strcpy(string2,string);
 	char*tok=strtok(string2,"?");
 	return tok;
+}
+//extracting POSTS
+char* getUntilNl(char string[]){
+	char* o=malloc(strlen(string));
+	o[0]=0;
+	for(int i=0;i<strlen(string);i++){
+		if(string[i]!='\n'){
+			o[i]=string[i];
+		}
+		else {
+			o[i]=0;
+			return o;
+		}
+	}
+}
+void getPost(char string[],struct paramNode* a){
+	char* temp=malloc(strlen(string));
+	strcpy(temp,string);
+	size_t shift=0;
+	char* line=getUntilNl(temp);
+	while(strlen(line)!=0){
+		shift+=strlen(line)+1;
+		free(line);
+		line=getUntilNl(temp+shift);
+	}
+	char* keyTmp;
+	char* valTmp;
+	bool bef=false;
+	char*tok=strtok(temp+shift+1,"\n");
+	while(tok!=NULL){
+		keyTmp=malloc(strlen(tok));
+		valTmp=malloc(strlen(tok));
+		bef=false;
+		for(int i=0;i<strlen(tok);i++){
+			if(!bef && tok[i]!='=')
+				keyTmp[i]=tok[i];
+			else if(tok[i]=='='){
+				keyTmp[i]=0;
+				bef=true;
+			}
+			else if(bef){
+				valTmp[i]=tok[i];
+			}
+		}
+		insertNode(a,keyTmp,valTmp+strlen(keyTmp)+1);
+		tok=strtok(NULL,"\n");
+	}
+	free(temp);
 }
 

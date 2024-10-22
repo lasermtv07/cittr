@@ -1,3 +1,4 @@
+//TODO: fix a LOT of memory leaks!
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,7 +63,6 @@ int main(){
 		}
 		printf("%s\n",reqinfo);
 		route=getRoute(a.route);
-		printf("%s\n",route);
 		if(strcmp(route,"/")==0){
 			response=malloc(strlen(resp));
 			strcpy(response,resp);
