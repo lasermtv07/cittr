@@ -14,3 +14,8 @@ struct paramNode {
 	struct paramNode* left;
 	struct paramNode* right;
 };
+struct response{
+	int code;
+	char* cookie;
+	char* content;
+};

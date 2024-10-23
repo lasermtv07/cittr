@@ -66,5 +66,11 @@ char* searchNode(struct paramNode* root,char key[]){
 			else return searchNode(root->right,key);
 		}
 	}
+	return NULL;
 }
-
+void freeTree(struct paramNode* a){
+	if(a->left!=NULL) freeTree(a->left);
+	if(a->right!=NULL) freeTree(a->right);
+	free(a);
+	return;
+}

@@ -8,17 +8,11 @@
 #include <unistd.h>
 #include "parse.c"
 #include "bst.c"
+#include "structs.c"
+#include "response.c"
 
 #define MAX_CONN 256
 int main(){
-	char resp[] = "HTTP/1.0 200 OK\r\n"
-	"Server: ws\r\n"
-	"Content-type: text/html\r\n\r\n"
-	"<html><center><h1>heya</h1>"
-	"<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/19y8YTbvri8?si=FyGI9bQbXyFIa753\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>"
-	"<form method=POST><input type=text name=uwu /><input type=submit /></form>"
-	"</center></html>"
-	;
 	int sock=socket(AF_INET,SOCK_STREAM,0);
 	if(sock==-1){
 		printf("failed\n");
@@ -44,6 +38,7 @@ int main(){
 	char* route;
 	char* response;
 	struct paramNode* get=newNode(".",".");
+	struct response resp;
 	for(;;){
 		int new=accept(sock,(struct sockaddr*)&ad,(socklen_t*)&al);
 		if(new<0){
@@ -64,8 +59,10 @@ int main(){
 		printf("%s\n",reqinfo);
 		route=getRoute(a.route);
 		if(strcmp(route,"/")==0){
-			response=malloc(strlen(resp));
-			strcpy(response,resp);
+			resp.code=200;
+			resp.cookie="tst1";
+			resp.content="<html><body><center><h1>response</h1></center></body></html>";
+			response=genResponse(resp);
 		}
 		else if(strcmp(route,"/test")==0){
 			response=malloc(5);
