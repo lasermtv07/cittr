@@ -1,7 +1,9 @@
 //TODO: fix a LOT of memory leaks!
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -12,12 +14,25 @@
 #include "response.c"
 
 #define MAX_CONN 256
+
+bool checkHTML(char string[]){
+	int l=0;
+	while(string[l]!='.' && l<strlen(string)){
+		l++;
+	}
+	if(strcmp(string+l,".html")==0 || strcmp(string+l,".htm")==0) return true;
+	else return false;
+}
+
 int main(){
 	int sock=socket(AF_INET,SOCK_STREAM,0);
 	if(sock==-1){
 		printf("failed\n");
 		return 1;
 	}
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0)
+    	perror("setsockopt(SO_REUSEADDR) failed");
+
 	printf("socket created\n");
 	struct sockaddr_in ad;
 	ad.sin_family=AF_INET;
@@ -32,13 +47,17 @@ int main(){
 		printf("failed listen\n");
 	}
 	size_t al=sizeof(ad);
-	printf("listening\n");
 	char* reqinfo=malloc(102400);
 	struct requestData a;
 	char* route;
 	char* response;
 	struct paramNode* get=newNode(".",".");
 	struct response resp;
+	FILE* f;
+	char currentChar;
+	int currentCtr;
+	size_t l=0;
+	char buff[10240];
 	for(;;){
 		int new=accept(sock,(struct sockaddr*)&ad,(socklen_t*)&al);
 		if(new<0){
@@ -69,8 +88,32 @@ int main(){
 			strcpy(response,"test");
 		}
 		else {
-			response=malloc(5);
-			strcpy(response,"404");
+			response=malloc(150);
+			strcpy(response,route+1);
+		if(access(route+1,F_OK)==0){
+			free(response);
+			resp.code=200;
+			resp.cookie="";
+			f=fopen(route+1,"r");
+			fseek(f,0,SEEK_END);
+			l=ftell(f)+1;
+			rewind(f);
+			response=malloc(l);
+			response[0]=0;
+			while(fgets(buff,10240,f)){
+				strcat(response,buff);
+			}
+			//TODO: potential memory leak here
+			resp.content=response;
+			fclose(f);
+			if(checkHTML(route)){
+				response=genResponse(resp);
+			}
+			else {
+				response=resp.content;
+			}
+		}
+
 		}
 		if(write(new,response,strlen(response))<0){
 			printf("write error\n");

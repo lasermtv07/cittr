@@ -74,3 +74,20 @@ void freeTree(struct paramNode* a){
 	free(a);
 	return;
 }
+bool existNode(struct paramNode* root,char* value){
+	if(root!=NULL){
+		if(strcmp(value,root->key)==0) return true;
+		else {
+			if(root->left!=NULL && root->right!=NULL){
+				return existNode(root->left,value) || existNode(root->right,value);
+			}
+			else if(root->left!=NULL && root->right==NULL){
+				return existNode(root->left,value);
+			}
+			else if(root->left==NULL && root->right!=NULL){
+				return existNode(root->right,value);
+			}
+		if(strcmp(value,root->key)!=0) return false;
+		}
+	}
+}
