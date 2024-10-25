@@ -23,3 +23,20 @@ char* genResponse(struct response resp){
 	return out;
 }
 
+char* replStr(char* string,char* repl,char* targ){
+	char* out=malloc(strlen(string)+strlen(repl)+1);
+	size_t tillRepl=0;
+	for(;tillRepl<strlen(string);tillRepl++){
+		if(string[tillRepl]==repl[0]){
+			if(strncmp(string+tillRepl,repl,strlen(repl))==0){
+				memcpy(out,string,tillRepl);
+				memcpy(out+tillRepl,targ,strlen(targ));
+				strcpy(out+strlen(targ)+tillRepl,string+tillRepl+strlen(repl));
+				return out;
+			}
+		}
+	}
+	free(out);
+	return string;
+}
+

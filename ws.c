@@ -1,5 +1,4 @@
-//TODO: fix a LOT of memory leaks!
-#include <stdio.h>
+//TODO: fix a LOT of memory leaks! #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -14,7 +13,14 @@
 #include "response.c"
 
 #define MAX_CONN 256
-
+size_t fileSize(char* file){
+	FILE* f=fopen(file,"r");
+	if(f==NULL) return -1;
+	fseek(f,0,SEEK_END);
+	size_t size=ftell(f);
+	fclose(f);
+	return size;
+}
 bool checkHTML(char string[]){
 	int l=0;
 	while(string[l]!='.' && l<strlen(string)){
@@ -52,30 +58,41 @@ int main(){
 	char* route;
 	char* response;
 	struct paramNode* get=newNode(".",".");
+	struct paramNode* post=newNode(".",".");
 	struct response resp;
 	FILE* f;
 	char currentChar;
 	int currentCtr;
 	size_t l=0;
 	char buff[10240];
+	char* tmp;
 	for(;;){
 		int new=accept(sock,(struct sockaddr*)&ad,(socklen_t*)&al);
 		if(new<0){
 			printf("error accept\n");
 			continue;
 		}
+		get=newNode(".",".");
+		post=newNode(".",".");
+
 		read(new,reqinfo,102400);
+		getPost(reqinfo,post);
+		//printf("%s",reqinfo);
 		parseRequest(&a,reqinfo);
-		printf("Request: %d\nRoute: %s\nUseragent:%s\ncookies:%s\n",a.reqType,a.route,a.userAgent,a.cookies);
+
+		//printf("Request: %d\nRoute: %s\nUseragent:%s\ncookies:%s\n",a.reqType,a.route,a.userAgent,a.cookies);
 
 		getGet(a.route,get);
+		if(existNode(post,"\nlogin")){
+			printf("\n%s\n",searchNode(post,"\nlogin"));
+		};
 		if(searchNode(get,"tst")!=NULL){
 			printf("tst get value:%s\n",searchNode(get,"tst"));
 		}
 		else {
 			printf("get: tst isn't set!\n");
 		}
-		printf("%s\n",reqinfo);
+		//printf("%s\n",reqinfo);
 		route=getRoute(a.route);
 		if(strcmp(route,"/")==0){
 			resp.code=200;
@@ -115,12 +132,25 @@ int main(){
 		}
 
 		}
+		//TODO: fix register bugs
+		if(strcmp(route,"/register.html")==0){
+			tmp=replStr(response,"[[user]]","uwu");
+			free(response);
+			response=tmp;
+			if(existNode(post,"s")){
+				if(existNode(post,"login") && existNode(post,"pas")){
+					printf("\nlogin:%s\npassword:%s\n",searchNode(post,"login"),searchNode(post,"past"));
+				}
+			}
+		}
 		if(write(new,response,strlen(response))<0){
 			printf("write error\n");
 			return 1;
 		}
 		free(route);
 		free(response);
+		freeTree(get);
+		freeTree(post);
 		close(new);
 	}
 	return 0;

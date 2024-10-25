@@ -82,19 +82,22 @@ char* getUntilNl(char string[]){
 	}
 }
 void getPost(char string[],struct paramNode* a){
+
 	char* temp=malloc(strlen(string));
 	strcpy(temp,string);
 	size_t shift=0;
 	char* line=getUntilNl(temp);
-	while(strlen(line)!=0){
+
+	while(strlen(line)>5){
 		shift+=strlen(line)+1;
 		free(line);
 		line=getUntilNl(temp+shift);
 	}
+
 	char* keyTmp;
 	char* valTmp;
 	bool bef=false;
-	char*tok=strtok(temp+shift+1,"\n");
+	char*tok=strtok(temp+shift+1,"&");
 	while(tok!=NULL){
 		keyTmp=malloc(strlen(tok));
 		valTmp=malloc(strlen(tok));
@@ -111,7 +114,7 @@ void getPost(char string[],struct paramNode* a){
 			}
 		}
 		insertNode(a,keyTmp,valTmp+strlen(keyTmp)+1);
-		tok=strtok(NULL,"\n");
+		tok=strtok(NULL,"&");
 	}
 	free(temp);
 }
