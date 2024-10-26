@@ -68,54 +68,32 @@ char* getRoute(char string[]){
 	return tok;
 }
 //extracting POSTS
-char* getUntilNl(char string[]){
-	char* o=malloc(strlen(string));
-	o[0]=0;
-	for(int i=0;i<strlen(string);i++){
-		if(string[i]!='\n'){
-			o[i]=string[i];
-		}
-		else {
-			o[i]=0;
-			return o;
-		}
-	}
-}
+
 void getPost(char string[],struct paramNode* a){
-
-	char* temp=malloc(strlen(string));
-	strcpy(temp,string);
-	size_t shift=0;
-	char* line=getUntilNl(temp);
-
-	while(strlen(line)>5){
-		shift+=strlen(line)+1;
-		free(line);
-		line=getUntilNl(temp+shift);
+	char* tmp=malloc(strlen(string));
+	strcpy(tmp,string);
+	char* tok=strtok(tmp,"\n");
+	char* prev=malloc(10241);
+	while(1){
+		strcpy(prev,"");
+		strncpy(prev,tok,10240);
+		tok=strtok(NULL,"\n");
+		if(tok==NULL) break;
 	}
-
-	char* keyTmp;
-	char* valTmp;
-	bool bef=false;
-	char*tok=strtok(temp+shift+1,"&");
-	while(tok!=NULL){
-		keyTmp=malloc(strlen(tok));
-		valTmp=malloc(strlen(tok));
-		bef=false;
-		for(int i=0;i<strlen(tok);i++){
-			if(!bef && tok[i]!='=')
-				keyTmp[i]=tok[i];
-			else if(tok[i]=='='){
-				keyTmp[i]=0;
-				bef=true;
-			}
-			else if(bef){
-				valTmp[i]=tok[i];
+	if(prev[0]==13) return;
+	char* key=malloc(strlen(prev));
+	char* tk=strtok(prev,"&");
+	while(tk!=NULL){
+		for(int i=0;i<strlen(prev);i++) key[i]=0;
+		for(int i=0;i<strlen(tk);i++){
+			if(tk[i]=='='){
+				strncpy(key,tk,i);
+				insertNode(a,key,tk+i+1);
 			}
 		}
-		insertNode(a,keyTmp,valTmp+strlen(keyTmp)+1);
-		tok=strtok(NULL,"&");
+		tk=strtok(NULL,"&");
 	}
-	free(temp);
+	free(tmp);
+	free(prev);
 }
 

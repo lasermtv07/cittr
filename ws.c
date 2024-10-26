@@ -77,20 +77,18 @@ int main(){
 
 		read(new,reqinfo,102400);
 		getPost(reqinfo,post);
-		//printf("%s",reqinfo);
+		printf("%s",reqinfo);
 		parseRequest(&a,reqinfo);
 
 		//printf("Request: %d\nRoute: %s\nUseragent:%s\ncookies:%s\n",a.reqType,a.route,a.userAgent,a.cookies);
 
 		getGet(a.route,get);
-		if(existNode(post,"\nlogin")){
-			printf("\n%s\n",searchNode(post,"\nlogin"));
-		};
+
 		if(searchNode(get,"tst")!=NULL){
-			printf("tst get value:%s\n",searchNode(get,"tst"));
+			//printf("tst get value:%s\n",searchNode(get,"tst"));
 		}
 		else {
-			printf("get: tst isn't set!\n");
+			//printf("get: tst isn't set!\n");
 		}
 		//printf("%s\n",reqinfo);
 		route=getRoute(a.route);
@@ -138,10 +136,10 @@ int main(){
 			free(response);
 			response=tmp;
 			if(existNode(post,"s")){
-				if(existNode(post,"login") && existNode(post,"pas")){
-					printf("\nlogin:%s\npassword:%s\n",searchNode(post,"login"),searchNode(post,"past"));
+			printf("\n\nFINE\n\n");
+				printf("\%s\n",searchNode(post,"login"));
 				}
-			}
+			
 		}
 		if(write(new,response,strlen(response))<0){
 			printf("write error\n");
@@ -152,6 +150,7 @@ int main(){
 		freeTree(get);
 		freeTree(post);
 		close(new);
+		printf("\n-----------------------------------------------\n");
 	}
 	return 0;
 }
