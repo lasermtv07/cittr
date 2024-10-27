@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
 //checks if first argument is first in alphabetical order
 bool alphOrderFirst(char first[], char second[]){
 	int minLen;
@@ -20,8 +19,8 @@ struct paramNode* newNode(char key[],char value[]){
 	struct paramNode* n=malloc(sizeof(struct paramNode));
 	char* str1=malloc(strlen(key));
 	char* str2=malloc(strlen(value));
-	strcpy(str1,key);
-	strcpy(str2,value);
+	strncpy(str1,key,strlen(key));
+	strncpy(str2,value,strlen(value));
 	if(n!=NULL){
 		n->key=str1;
 		n->value=str2;
@@ -31,10 +30,12 @@ struct paramNode* newNode(char key[],char value[]){
 	return n;
 }
 void insertNode(struct paramNode* root,char k[],char v[]){
+	printf("[DEBUG] adding NODE: %s=>%s\n",k,v);
 	char* key=malloc(strlen(k));
-	strcpy(key,k);
+	strncpy(key,k,strlen(k));
 	char* value=malloc(strlen(v));
-	strcpy(value,v);
+	strncpy(value,v,strlen(v));
+	printf("EH\n");
 	struct paramNode* new=newNode(key,value);
 	if(strcmp(root->key,key)==0){
 		root->value=value;
@@ -49,6 +50,7 @@ void insertNode(struct paramNode* root,char k[],char v[]){
 			else insertNode(root->right,key,value);
 		}
 	}
+	//free(new);
 	free(key);
 	free(value);
 }
@@ -71,6 +73,9 @@ char* searchNode(struct paramNode* root,char key[]){
 void freeTree(struct paramNode* a){
 	if(a->left!=NULL) freeTree(a->left);
 	if(a->right!=NULL) freeTree(a->right);
+	//if(a->key!=NULL)free(a->key);
+	//if(a->value!=NULL)free(a->value);
+	printf("[CLEARING] a->value:%s\n",a->value);
 	free(a);
 	return;
 }
@@ -91,3 +96,4 @@ bool existNode(struct paramNode* root,char* value){
 		}
 	}
 }
+

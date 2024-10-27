@@ -31,7 +31,7 @@ void parseRequest(struct requestData *a,char str[]){
 		tok=strtok(NULL,"\n");
 	}
 	free(string);
-	free(tok);
+	//free(tok);
 	free(temp);
 }
 //adds key value pair
@@ -65,35 +65,46 @@ char* getRoute(char string[]){
 	char* string2=malloc(strlen(string));
 	strcpy(string2,string);
 	char*tok=strtok(string2,"?");
-	return tok;
+	char*ret=malloc(strlen(tok));
+	strcpy(ret,tok);
+	free(string2);
+	return ret;
 }
 //extracting POSTS
-
 void getPost(char string[],struct paramNode* a){
 	char* tmp=malloc(strlen(string));
-	strcpy(tmp,string);
+	strncpy(tmp,string,strlen(string));
 	char* tok=strtok(tmp,"\n");
-	char* prev=malloc(10241);
-	while(1){
-		strcpy(prev,"");
-		strncpy(prev,tok,10240);
+	char*prev=malloc(strlen(string));
+	while(tok!=NULL){
+		sprintf(prev,"%s",tok);
 		tok=strtok(NULL,"\n");
 		if(tok==NULL) break;
 	}
-	if(prev[0]==13) return;
-	char* key=malloc(strlen(prev));
-	char* tk=strtok(prev,"&");
+	printf("\nPREV:%s\nLAST:%d\n\n",prev,prev[strlen(prev)-1]);
+	char*tk=strtok(prev,"&");
+	char*key=malloc(strlen(prev));
+	char*value=malloc(strlen(prev));
+	size_t untilEq=0;
 	while(tk!=NULL){
-		for(int i=0;i<strlen(prev);i++) key[i]=0;
-		for(int i=0;i<strlen(tk);i++){
-			if(tk[i]=='='){
-				strncpy(key,tk,i);
-				insertNode(a,key,tk+i+1);
-			}
+		for(int i=0;i<strlen(prev);i++){
+			key[i]=0;
+			value[i]=0;
 		}
+		untilEq=0;
+		for(int i=0;i<strlen(tk);i++){
+			if(tk[i]=='=') break;
+			untilEq++;
+		}
+		strncpy(key,tk,untilEq);
+		strncpy(value,tk+untilEq+1,strlen(tk)-untilEq);
+		printf("%s (%d) [%s=>%s]\n",tk,untilEq,key,value);
+		insertNode(a,key,value);
 		tk=strtok(NULL,"&");
+		if(tk==NULL) break;
 	}
+	free(key);
+	free(value);
 	free(tmp);
 	free(prev);
 }
-

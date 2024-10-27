@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sqlite3.h>
 #include "parse.c"
 #include "bst.c"
 #include "structs.c"
@@ -29,8 +30,18 @@ bool checkHTML(char string[]){
 	if(strcmp(string+l,".html")==0 || strcmp(string+l,".htm")==0) return true;
 	else return false;
 }
-
+int regCallback(void* NotUsed,int argc,char**argv,char** azColName){
+	printf("%d\n",argv[0]);
+	return 0;
+}
 int main(){
+	sqlite3 *db;
+	char stmt[10240];
+	if(sqlite3_open("data.db",&db)!=SQLITE_OK){
+		printf("error with sqlite\n");
+		return 1;
+	}
+	printf("SQL:%s\n",sqlite3_libversion());
 	int sock=socket(AF_INET,SOCK_STREAM,0);
 	if(sock==-1){
 		printf("failed\n");
@@ -66,6 +77,10 @@ int main(){
 	size_t l=0;
 	char buff[10240];
 	char* tmp;
+	char* tmp2;
+	char* login;
+	char* pas;
+	char* newpost;
 	for(;;){
 		int new=accept(sock,(struct sockaddr*)&ad,(socklen_t*)&al);
 		if(new<0){
@@ -76,13 +91,19 @@ int main(){
 		post=newNode(".",".");
 
 		read(new,reqinfo,102400);
+		printf("%d\n",strlen(reqinfo));
+		//printf("%s\n~~~~~~~~~~~~~~~~~~~~~~",reqinfo);
+		//problem HERE
 		getPost(reqinfo,post);
-		printf("%s",reqinfo);
+		//insertNode(post,"login","asddddddddddddddddddd");
+		//insertNode(post,"pas","asdasdasdasdas");
+
+		//printf("%s",reqinfo);
 		parseRequest(&a,reqinfo);
 
 		//printf("Request: %d\nRoute: %s\nUseragent:%s\ncookies:%s\n",a.reqType,a.route,a.userAgent,a.cookies);
 
-		getGet(a.route,get);
+		//getGet(a.route,get);
 
 		if(searchNode(get,"tst")!=NULL){
 			//printf("tst get value:%s\n",searchNode(get,"tst"));
@@ -130,25 +151,55 @@ int main(){
 		}
 
 		}
+
 		//TODO: fix register bugs
 		if(strcmp(route,"/register.html")==0){
 			tmp=replStr(response,"[[user]]","uwu");
 			free(response);
 			response=tmp;
 			if(existNode(post,"s")){
-			printf("\n\nFINE\n\n");
-				printf("\%s\n",searchNode(post,"login"));
-				}
+				if(existNode(post,"login") && existNode(post,"pas")){
+					login=searchNode(post,"login");
+					pas=searchNode(post,"pas");
+					if(strlen(pas)>8){
+						tmp2=malloc(strlen(login)+strlen(pas)+1024);
+						sprintf(tmp2,"select login from acc where exists (select login from acc where login='%s')",login);
+						printf("%s",tmp2);
+						sqlite3_exec(db,tmp2,regCallback,0,NULL);
+						tmp=malloc(strlen(login)+strlen(pas)+1024);
+						sprintf(tmp,"insert into acc (login,pas) values '%s','%s'",login,pas);
+						free(tmp);
+
+						free(tmp2);
+					}
+					else {
+						tmp2=replStr(response,"[[message]]","Password must be atleast 8 characters long!");
+						free(response);
+						response=tmp2;
+					}
+				}			
+
+			}
+			else {
+			tmp=replStr(response,"[[message]]"," ");
+			free(response);
+			response=tmp;
+			}
 			
 		}
-		if(write(new,response,strlen(response))<0){
+		size_t responseLen=strlen(response);
+		printf("%d\nEND\n%s\n",responseLen,response);
+		response[responseLen-1]=0;
+		if(write(new,response,479)<0){
 			printf("write error\n");
 			return 1;
 		}
+		printf("WRITE SUCCESS!");
 		free(route);
 		free(response);
 		freeTree(get);
 		freeTree(post);
+		free(resp.content);
 		close(new);
 		printf("\n-----------------------------------------------\n");
 	}
