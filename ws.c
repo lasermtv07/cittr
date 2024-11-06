@@ -1,207 +1,167 @@
-//TODO: fix a LOT of memory leaks! #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
 #include <unistd.h>
-#include <sqlite3.h>
+#include <string.h>
+#include "list.c"
 #include "parse.c"
-#include "bst.c"
-#include "structs.c"
-#include "response.c"
+#include "dumbdb.c"
 
-#define MAX_CONN 256
-size_t fileSize(char* file){
-	FILE* f=fopen(file,"r");
-	if(f==NULL) return -1;
-	fseek(f,0,SEEK_END);
-	size_t size=ftell(f);
-	fclose(f);
-	return size;
-}
-bool checkHTML(char string[]){
-	int l=0;
-	while(string[l]!='.' && l<strlen(string)){
-		l++;
+//(maybe) mistake here..?
+char* myRepl(char* string,char* search, char* repl){
+	char* new=malloc(strlen(string)+strlen(repl)+1);
+	strncpy(new,"",strlen(string)+strlen(repl)+1);
+	for(int i=0;i<strlen(string)-strlen(search);i++){
+		if(string[i]==search[0]){
+			if(strncmp(string+i,search,strlen(search))==0 && i<strlen(string)-strlen(search)){
+				strcat(new,repl);
+				strcat(new,string+i+strlen(search));
+				break;
+			}
+		}
+		new[i]=string[i];
 	}
-	if(strcmp(string+l,".html")==0 || strcmp(string+l,".htm")==0) return true;
-	else return false;
+	free(string);
+	return new;
 }
-int regCallback(void* NotUsed,int argc,char**argv,char** azColName){
-	printf("%d\n",argv[0]);
-	return 0;
+int checkExtension(char* str,char* ext){
+	char string[1024];
+	strncpy(string,"",1024);
+	strncpy(string,str,1024);
+	char* tok=strtok(string,".");
+	tok=strtok(NULL,".");
+	if(tok==NULL) return 0;
+	return !strcmp(tok,ext);
 }
 int main(){
-	sqlite3 *db;
-	char stmt[10240];
-	if(sqlite3_open("data.db",&db)!=SQLITE_OK){
-		printf("error with sqlite\n");
-		return 1;
-	}
-	printf("SQL:%s\n",sqlite3_libversion());
 	int sock=socket(AF_INET,SOCK_STREAM,0);
-	if(sock==-1){
-		printf("failed\n");
+	 if(sock==-1){
+		printf("error creating socket\n");
 		return 1;
-	}
-	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0)
-    	perror("setsockopt(SO_REUSEADDR) failed");
-
-	printf("socket created\n");
+	 }
 	struct sockaddr_in ad;
 	ad.sin_family=AF_INET;
-	ad.sin_port=htons(8080);
+	ad.sin_port=htons(6969);
 	ad.sin_addr.s_addr=htonl(INADDR_ANY);
-	
-	if(bind(sock,(struct sockaddr*)&ad,sizeof(ad))!=0){
-		printf("failed bind\n");
+	int al=sizeof(ad);
+	//allows reusing same socket, basically doesnt require wait after server restart
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &(int){1}, al) < 0)
+		printf("error setsockopt\n");
+	if(bind(sock,(struct sockaddr *)&ad,sizeof(ad)) != 0){
+		printf("error binding socket\n");
 		return 1;
 	}
-	if(listen(sock,MAX_CONN)!=0){
-		printf("failed listen\n");
+	printf("socket bound to 6969\n");
+	
+	if(listen(sock,SOMAXCONN)!=0){
+		printf("error listening\n");
+		return 1;
 	}
-	size_t al=sizeof(ad);
-	char* reqinfo=malloc(102400);
-	struct requestData a;
-	char* route;
-	char* response;
-	struct paramNode* get=newNode(".",".");
-	struct paramNode* post=newNode(".",".");
-	struct response resp;
-	FILE* f;
-	char currentChar;
-	int currentCtr;
-	size_t l=0;
-	char buff[10240];
-	char* tmp;
-	char* tmp2;
-	char* login;
-	char* pas;
-	char* newpost;
-	for(;;){
-		int new=accept(sock,(struct sockaddr*)&ad,(socklen_t*)&al);
-		if(new<0){
-			printf("error accept\n");
+	struct reqInfo info;
+	char reqbuff[10240];
+	strncpy(reqbuff,"",10240);
+	char* resp=NULL;
+	char buff[1024];
+	FILE *f;
+	char* head1="HTTP/1.1 200\n\n";
+	char* error="HTTP/1.1 404\n\n<html><center><h1>404: not found</h1></center></html>";
+	while(1){
+		int newfd=accept(sock,(struct sockaddr *)&ad,&al);
+		if(newfd<0){
+			printf("connection rejected\n");
 			continue;
 		}
-		get=newNode(".",".");
-		post=newNode(".",".");
+		read(newfd,&reqbuff,10239);
+		//printf("%s\n",reqbuff);
+		parsePost(&info,reqbuff);
+		
+		resp=NULL;
 
-		read(new,reqinfo,102400);
-		printf("%d\n",strlen(reqinfo));
-		//printf("%s\n~~~~~~~~~~~~~~~~~~~~~~",reqinfo);
-		//problem HERE
-		getPost(reqinfo,post);
-		//insertNode(post,"login","asddddddddddddddddddd");
-		//insertNode(post,"pas","asdasdasdasdas");
+		/*resp=malloc(1);
+		resp[0]=0x0;*/
 
-		//printf("%s",reqinfo);
-		parseRequest(&a,reqinfo);
-
-		//printf("Request: %d\nRoute: %s\nUseragent:%s\ncookies:%s\n",a.reqType,a.route,a.userAgent,a.cookies);
-
-		//getGet(a.route,get);
-
-		if(searchNode(get,"tst")!=NULL){
-			//printf("tst get value:%s\n",searchNode(get,"tst"));
-		}
-		else {
-			//printf("get: tst isn't set!\n");
-		}
-		//printf("%s\n",reqinfo);
-		route=getRoute(a.route);
-		if(strcmp(route,"/")==0){
-			resp.code=200;
-			resp.cookie="tst1";
-			resp.content="<html><body><center><h1>response</h1></center></body></html>";
-			response=genResponse(resp);
-		}
-		else if(strcmp(route,"/test")==0){
-			response=malloc(5);
-			strcpy(response,"test");
-		}
-		else {
-			response=malloc(150);
-			strcpy(response,route+1);
-		if(access(route+1,F_OK)==0){
-			free(response);
-			resp.code=200;
-			resp.cookie="";
-			f=fopen(route+1,"r");
-			fseek(f,0,SEEK_END);
-			l=ftell(f)+1;
-			rewind(f);
-			response=malloc(l);
-			response[0]=0;
-			while(fgets(buff,10240,f)){
-				strcat(response,buff);
+		if(checkExtension(info.path,"html") || !strcmp(info.path,"/")){
+			if(info.post==NULL || strcmp(info.path,"/register.html")==0 || strcmp(info.path,"/login.html")==0){
+				resp=realloc(resp,1+strlen(head1));
+				strcpy(resp,head1);
 			}
-			//TODO: potential memory leak here
-			resp.content=response;
+			else {
+				resp=malloc(1048);
+				sprintf(resp,"HTTP/1.1 303\nLocation: %s\n",info.path);
+			}
+		}
+		strncpy(buff,"",1024);
+		if(strcmp(info.path,"/")==0)
+			f=fopen("index.html","r");
+		else
+			f=fopen(info.path+1,"r");
+		if(f!=NULL){
+			while(fgets(buff,1024,f)!=NULL){
+				resp=realloc(resp,strlen(resp)+strlen(buff)+1);
+				strcat(resp,buff);
+				strncpy(buff,"",1024);
+			}
 			fclose(f);
-			if(checkHTML(route)){
-				response=genResponse(resp);
-			}
-			else {
-				response=resp.content;
-			}
 		}
-
+		else {
+			resp=realloc(resp,strlen(error)+1);
+			strcpy(resp,error);
 		}
-
-		//TODO: fix register bugs
-		if(strcmp(route,"/register.html")==0){
-			tmp=replStr(response,"[[user]]","uwu");
-			free(response);
-			response=tmp;
-			if(existNode(post,"s")){
-				if(existNode(post,"login") && existNode(post,"pas")){
-					login=searchNode(post,"login");
-					pas=searchNode(post,"pas");
-					if(strlen(pas)>8){
-						tmp2=malloc(strlen(login)+strlen(pas)+1024);
-						sprintf(tmp2,"select login from acc where exists (select login from acc where login='%s')",login);
-						printf("%s",tmp2);
-						sqlite3_exec(db,tmp2,regCallback,0,NULL);
-						tmp=malloc(strlen(login)+strlen(pas)+1024);
-						sprintf(tmp,"insert into acc (login,pas) values '%s','%s'",login,pas);
-						free(tmp);
-
-						free(tmp2);
+		printf("%p\n",info.post);
+		if(strcmp(info.path,"/register.html")==0){
+			if(info.post!=NULL){
+				if(readNode(info.post,"login")!=NULL && readNode(info.post,"pass")!=NULL){
+					switch(registerDb(readNode(info.post,"login"),readNode(info.post,"pass"))){
+						case 0:
+							resp=myRepl(resp,"[[message]]","Invalid username!");
+							break;
+						case 1:
+							resp=myRepl(resp,"[[message]]","Invalid password! (length atleast 8)");
+							break;
+						case 2:
+							resp=myRepl(resp,"[[message]]","User already exists!");
+							break;
+						case 4:
+							resp=myRepl(resp,"[[message]]","Registered succesfully!");
+							break;
 					}
-					else {
-						tmp2=replStr(response,"[[message]]","Password must be atleast 8 characters long!");
-						free(response);
-						response=tmp2;
+				}
+			}
+		}
+		else if(strcmp(info.path,"/login.html")==0){
+			if(info.post!=NULL){
+				if(readNode(info.post,"login")!=NULL && readNode(info.post,"pass")!=NULL){
+					if(loginDb(readNode(info.post,"login"),readNode(info.post,"pass"))){
+						resp=myRepl(resp,"[[message]]","Login correct!");
+						size_t loginSize=strlen(readNode(info.post,"login"));
+						size_t passSize=strlen(readNode(info.post,"pass"));
+						char* loginCook=malloc(loginSize+passSize+2);
+						loginCook[0]=0x00;
+						strcat(loginCook,readNode(info.post,"login"));
+						strcat(loginCook,"~");
+						strcat(loginCook,readNode(info.post,"pass"));
+
+						resp=addCookie(resp,loginCook);
+
+						printf("%s\n",resp);
+						free(loginCook);
 					}
-				}			
+					else
+						resp=myRepl(resp,"[[message]]","Invalid credentials!");
+				}
 
 			}
-			else {
-			tmp=replStr(response,"[[message]]"," ");
-			free(response);
-			response=tmp;
-			}
-			
 		}
-		size_t responseLen=strlen(response);
-		printf("%d\nEND\n%s\n",responseLen,response);
-		response[responseLen-1]=0;
-		if(write(new,response,479)<0){
-			printf("write error\n");
-			return 1;
-		}
-		printf("WRITE SUCCESS!");
-		free(route);
-		free(response);
-		freeTree(get);
-		freeTree(post);
-		free(resp.content);
-		close(new);
-		printf("\n-----------------------------------------------\n");
+		//printf("%s\n",resp);
+		printf("%s\n",info.cookie);
+		printf("Stats:%d\n",checkCookieValid(info.cookie));
+		write(newfd,resp,strlen(resp));
+		if(info.post!=NULL)
+			freeList(info.post);
+		strncpy(reqbuff,"",10240);
+		close(newfd);
+		if(resp!=NULL)
+			free(resp);
 	}
-	return 0;
+
 }
