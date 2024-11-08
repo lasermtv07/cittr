@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 int registerDb(char* login,char* pass){
 	for(int i=0;i<strlen(login);i++){
@@ -66,4 +67,47 @@ int loginDb(char* login,char* pass){
 	fclose(f);
 	return 0;
 }
+int writePostDb(char* name,char* content){
+	time_t now=time(NULL);
+	char time[100];
+	struct tm tm_now;
+	localtime_r(&now,&tm_now);
+	strftime(time,100,"%d/%m/%Y %H:%M",&tm_now);
 
+	int max=0;
+	FILE* f=fopen("posts.txt","r");
+	if(f==NULL)
+		return 1;
+	char buff[1024];
+	strncpy(buff,"",1024);
+	while(fgets(buff,1024,f)!=NULL){
+		char* tok=strtok(buff,";");
+		if(tok!=NULL)
+			if(max<atoi(tok))
+				max=atoi(tok);
+		strncpy(buff,"",1024);
+	}
+	fclose(f);
+	max++;
+	f=fopen("posts.txt","a");
+	if(f==NULL)
+		return 1;
+	fprintf(f,"%d;%s;%s;%s\n",max,time,name,content);
+	fclose(f);
+
+}
+char* myNl2Br(char* string){
+	char* o=malloc(strlen(string)*4+1);
+	strncpy(o,"",strlen(string)*4+1);
+	char* tmp=malloc(strlen(string)+1);
+	strcpy(tmp,string);
+	char* tok=strtok(tmp,"\n");
+
+	while(tok!=NULL){
+		strcat(o,tok);
+		strcat(o,"<br>");
+		tok=strtok(NULL,"\n");
+	}
+	free(tmp);
+	return o;
+}
