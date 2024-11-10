@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+
 int registerDb(char* login,char* pass){
 	for(int i=0;i<strlen(login);i++){
 		if(!((login[i]>='A' && login[i]<='Z') || 
@@ -80,7 +81,13 @@ int writePostDb(char* name,char* content){
 		return 1;
 	char buff[1024];
 	strncpy(buff,"",1024);
+	char* file=malloc(1);
+	file[0]=0;
+	size_t fsize=1;
 	while(fgets(buff,1024,f)!=NULL){
+		fsize+=strlen(buff)+1;
+		file=realloc(file,fsize);
+		strcat(file,buff);
 		char* tok=strtok(buff,";");
 		if(tok!=NULL)
 			if(max<atoi(tok))
@@ -89,14 +96,18 @@ int writePostDb(char* name,char* content){
 	}
 	fclose(f);
 	max++;
-	f=fopen("posts.txt","a");
-	if(f==NULL)
+	f=fopen("posts.txt","w");
+	if(f==NULL){
+		free(file);
 		return 1;
-	fprintf(f,"%d;%s;%s;%s\n",max,time,name,content);
+	}
+	
+	fprintf(f,"%d;%s;%s;%s\n%s",max,time,name,content,file);
+	free(file);
 	fclose(f);
 
 }
-char* myNl2Br(char* string){
+char* myNl2br(char* string){
 	char* o=malloc(strlen(string)*4+1);
 	strncpy(o,"",strlen(string)*4+1);
 	char* tmp=malloc(strlen(string)+1);
@@ -110,4 +121,79 @@ char* myNl2Br(char* string){
 	}
 	free(tmp);
 	return o;
+}
+char* readToHtmlDb(){
+	char buff[1025];
+	strncpy(buff,"",1024);
+	FILE *f=fopen("posts.txt","r");
+	char* posts=malloc(1);
+	posts[0]=0;
+
+	char name[1024];
+	char date[1024];
+	char msg[1024];
+	strncpy(name,"",1023);
+	strncpy(date,"",1023);
+	strncpy(msg,"",1023);
+	while(fgets(buff,1024,f)!=NULL){
+		strncpy(name,"",1023);
+		strncpy(date,"",1023);
+		strncpy(msg,"",1023);
+		char* tok=strtok(buff,";");
+		if(tok!=NULL){
+			tok=strtok(NULL,";");
+			if(tok!=NULL){
+				strcpy(date,tok);
+				tok=strtok(NULL,";");
+				if(tok!=NULL){
+					strcpy(name,tok);
+					tok=strtok(NULL,";");
+					if(tok!=NULL)
+						strcpy(msg,tok);
+				}
+			}
+		}
+		if(name[0]!=0){
+			posts=realloc(posts,strlen(posts)+strlen(buff)+512);
+			strcat(posts,"<br><b>");
+			strcat(posts,name);
+			strcat(posts,"</b> - <i>");
+			strcat(posts,date);
+			strcat(posts,"</i><br>");
+			strcat(posts,msg);
+			strcat(posts,"<hr>");
+			strncpy(buff,"",1024);
+		}
+	}
+	fclose(f);
+	return posts;
+}
+int verifyCookie(char* cookie){
+	char* name=strtok(cookie,"~");
+	if(name==NULL)
+		return 0;
+	char* pass=strtok(NULL,"~");
+	if(pass==NULL)
+		return 0;
+	FILE*f=fopen("acc.txt","r");
+
+	if(f==NULL)
+		return 0;
+	char buff[1025];
+	strncpy(buff,"",1024);
+	while(fgets(buff,1024,f)!=NULL){
+		char* tok=strtok(buff,";");
+		if(tok!=NULL){
+			tok=strtok(NULL,";");
+			if(tok!=NULL && strcmp(tok,name)==0){
+				tok=strtok(NULL,";");
+				if(tok!=NULL && strcmp(tok,pass))
+					return 1;
+			}
+		}
+
+		strncpy(buff,"",1023);
+	}
+	printf("ehh yaa got here\n");
+	return 0;
 }

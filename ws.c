@@ -107,6 +107,7 @@ int main(){
 			resp=realloc(resp,strlen(error)+1);
 			strcpy(resp,error);
 		}
+
 		printf("%p\n",info.post);
 		if(strcmp(info.path,"/register.html")==0){
 			if(info.post!=NULL){
@@ -150,6 +151,28 @@ int main(){
 						resp=myRepl(resp,"[[message]]","Invalid credentials!");
 				}
 
+			}
+		}
+		else if(strcmp(info.path,"/")==0){
+			char* posts=readToHtmlDb();
+			resp=myRepl(resp,"[[posts]]",posts);
+			free(posts);
+			if(info.post!=NULL){
+				if(readNode(info.post,"tweet")!=NULL){
+					if(verifyCookie(info.cookie)){
+
+					printf("EEEJH %d\n",verifyCookie(info.cookie));
+						char* namae=strtok(info.cookie,"~");
+						if(namae!=NULL){
+							char* nodePost=readNode(info.post,"tweet");
+							char* parsed=url2txt(nodePost);
+							char* nulled=myNl2br(parsed);
+							writePostDb(namae,nulled);
+							free(parsed);
+							free(nulled);
+						}
+					}
+				}
 			}
 		}
 		//printf("%s\n",resp);
