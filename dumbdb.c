@@ -108,9 +108,10 @@ int writePostDb(char* name,char* content){
 
 }
 char* myNl2br(char* string){
-	char* o=malloc(strlen(string)*4+1);
-	strncpy(o,"",strlen(string)*4+1);
-	char* tmp=malloc(strlen(string)+1);
+	//printf("\n%d - %s\n",strlen(string),string);
+	char* o=malloc(1024*4+1);
+	strncpy(o,"",1024*4+1);
+	char* tmp=malloc(1024+1);
 	strcpy(tmp,string);
 	char* tok=strtok(tmp,"\n");
 
@@ -122,7 +123,7 @@ char* myNl2br(char* string){
 	free(tmp);
 	return o;
 }
-char* readToHtmlDb(){
+char* readToHtmlDb(int ad){
 	char buff[1025];
 	strncpy(buff,"",1024);
 	FILE *f=fopen("posts.txt","r");
@@ -132,15 +133,19 @@ char* readToHtmlDb(){
 	char name[1024];
 	char date[1024];
 	char msg[1024];
+	char number[1024];
 	strncpy(name,"",1023);
 	strncpy(date,"",1023);
 	strncpy(msg,"",1023);
+	strncpy(number,"",1023);
 	while(fgets(buff,1024,f)!=NULL){
 		strncpy(name,"",1023);
 		strncpy(date,"",1023);
 		strncpy(msg,"",1023);
+		strncpy(number,"",1023);
 		char* tok=strtok(buff,";");
 		if(tok!=NULL){
+			strcpy(number,tok);
 			tok=strtok(NULL,";");
 			if(tok!=NULL){
 				strcpy(date,tok);
@@ -159,7 +164,13 @@ char* readToHtmlDb(){
 			strcat(posts,name);
 			strcat(posts,"</b> - <i>");
 			strcat(posts,date);
-			strcat(posts,"</i><br>");
+			strcat(posts,"</i>");
+			if(ad){
+				strcat(posts,"<a style=float:right href=remove");
+				strcat(posts,number);
+				strcat(posts," >Delete</a>");
+			}
+			strcat(posts,"<br>");
 			strcat(posts,msg);
 			strcat(posts,"<hr>");
 			strncpy(buff,"",1024);
@@ -196,4 +207,53 @@ int verifyCookie(char* cookie){
 	}
 	printf("ehh yaa got here\n");
 	return 0;
+}
+int isAdmin(char* name){
+	FILE* f=fopen("acc.txt","r");
+	if(f==NULL)
+		return 0;
+	char buff[1024];
+	while(fgets(buff,1024,f)){
+		char* tok=strtok(buff,";");
+		if(tok!=NULL && tok[0]=='1'){
+			tok=strtok(NULL,";");
+			if(tok!=NULL){
+				if(strcmp(tok,name)==0){
+					fclose(f);
+					return 1;
+				}
+			}
+		}
+		strncpy(buff,"",1024);
+	}
+	return 0;
+}
+int dbRemovePost(char* number){
+	FILE *f=fopen("posts.txt","r");
+	if(f==NULL)
+		return 0;
+	char buff[1024];
+	strncpy(buff,"",1024);
+	char buff2[1024];
+	strncpy(buff2,"",1024);
+	char* newFile=malloc(1);
+	size_t size=1;
+	newFile[0]=0;
+	while(fgets(buff,1024,f)!=NULL){
+		strcpy(buff2,buff);
+		char* tok=strtok(buff,";");
+		if(tok!=NULL && strcmp(number,tok)){
+			size+=strlen(buff2)+1;
+			newFile=realloc(newFile,size);
+			strcat(newFile,buff2);
+		}
+		strncpy(buff2,"",1024);
+		strncpy(buff,"",1024);
+	}
+	fclose(f);
+	f=fopen("posts.txt","w");
+	fprintf(f,"%s",newFile);
+	fclose(f);
+	free(newFile);
+	return 1;
 }

@@ -154,9 +154,13 @@ int main(){
 			}
 		}
 		else if(strcmp(info.path,"/")==0){
-			char* posts=readToHtmlDb();
+			char* tmpadmin=malloc(strlen(info.cookie)+1);
+			strcpy(tmpadmin,info.cookie);
+			char*adName=strtok(tmpadmin,"~");
+			char* posts=readToHtmlDb(isAdmin(adName));
 			resp=myRepl(resp,"[[posts]]",posts);
 			free(posts);
+			free(tmpadmin);
 			if(info.post!=NULL){
 				if(readNode(info.post,"tweet")!=NULL){
 					if(verifyCookie(info.cookie)){
@@ -165,14 +169,28 @@ int main(){
 						char* namae=strtok(info.cookie,"~");
 						if(namae!=NULL){
 							char* nodePost=readNode(info.post,"tweet");
-							char* parsed=url2txt(nodePost);
-							char* nulled=myNl2br(parsed);
-							writePostDb(namae,nulled);
-							free(parsed);
-							free(nulled);
+							if(nodePost!=NULL){
+
+								printf("POSTING:%s\n",nodePost);
+								char* parsed=url2txt(nodePost);
+								char* nulled=myNl2br(parsed);
+								writePostDb(namae,nulled);
+								free(parsed);
+								free(nulled);
+							}
 						}
 					}
 				}
+			}
+		}
+		else if(strncmp(info.path,"/remove",strlen("/remove"))==0){
+			printf("KEEEK\n");
+			if(strlen(info.path)>7){
+				char* toAdd="HTTP/1.1 303\nLocation: /\n";
+				dbRemovePost(info.path+7);
+				free(resp);
+				resp=malloc(strlen(toAdd)+1);
+				strcpy(resp,toAdd);
 			}
 		}
 		//printf("%s\n",resp);

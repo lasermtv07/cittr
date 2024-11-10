@@ -161,11 +161,15 @@ char hexDig2int(char n){
 		return 0;
 		
 }
+//possible memory leak here, fix
 char* url2txt(char* string){
-	char* out=malloc(strlen(string));
-	strncpy(out,"",strlen(string));
+	size_t len=strlen(string);
+	if(len==0)
+		len=1024;
+	char* out=malloc(len+1024);
+	strncpy(out,"",len+1024);
 	int back=0;
-	for(int i=0;i<strlen(string);i++){
+	for(int i=0;i<len;i++){
 		if(string[i]=='%'){
 			char nm=0;
 			if(i+2<strlen(string)){
