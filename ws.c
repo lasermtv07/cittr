@@ -96,7 +96,11 @@ int main(){
 		else
 			f=fopen(info.path+1,"r");
 		if(f!=NULL){
-			while(fgets(buff,1024,f)!=NULL){
+			if(resp==NULL) {
+				resp=malloc(2);
+				strncpy(resp,"",2);
+			}
+			while(fgets(buff,1024,f)!=NULL && resp!=NULL){
 				resp=realloc(resp,strlen(resp)+strlen(buff)+1);
 				strcat(resp,buff);
 				strncpy(buff,"",1024);
@@ -157,7 +161,7 @@ int main(){
 			char* tmpadmin=malloc(strlen(info.cookie)+1);
 			strcpy(tmpadmin,info.cookie);
 			char*adName=strtok(tmpadmin,"~");
-			char* posts=readToHtmlDb(isAdmin(adName));
+			char* posts=readToHtmlDb(isAdmin(adName),adName);
 			resp=myRepl(resp,"[[posts]]",posts);
 			free(posts);
 			free(tmpadmin);
@@ -186,9 +190,14 @@ int main(){
 		else if(strncmp(info.path,"/remove",strlen("/remove"))==0){
 			printf("KEEEK\n");
 			if(strlen(info.path)>7){
+				char* tmpadmin=malloc(strlen(info.cookie)+1);
+				strcpy(tmpadmin,info.cookie);
+				char*adName=strtok(tmpadmin,"~");
 				char* toAdd="HTTP/1.1 303\nLocation: /\n";
-				dbRemovePost(info.path+7);
+				if(isAdmin(tmpadmin) || isPostByNameDb(info.path+7,tmpadmin)!=0)
+					dbRemovePost(info.path+7);
 				free(resp);
+				free(tmpadmin);
 				resp=malloc(strlen(toAdd)+1);
 				strcpy(resp,toAdd);
 			}

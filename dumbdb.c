@@ -123,7 +123,7 @@ char* myNl2br(char* string){
 	free(tmp);
 	return o;
 }
-char* readToHtmlDb(int ad){
+char* readToHtmlDb(int ad,char* isName){
 	char buff[1025];
 	strncpy(buff,"",1024);
 	FILE *f=fopen("posts.txt","r");
@@ -165,7 +165,7 @@ char* readToHtmlDb(int ad){
 			strcat(posts,"</b> - <i>");
 			strcat(posts,date);
 			strcat(posts,"</i>");
-			if(ad){
+			if(ad || (isName!=NULL && strcmp(name,isName)==0)){
 				strcat(posts,"<a style=float:right href=remove");
 				strcat(posts,number);
 				strcat(posts," >Delete</a>");
@@ -209,6 +209,8 @@ int verifyCookie(char* cookie){
 	return 0;
 }
 int isAdmin(char* name){
+	if(name==NULL)
+		return 0;
 	FILE* f=fopen("acc.txt","r");
 	if(f==NULL)
 		return 0;
@@ -256,4 +258,36 @@ int dbRemovePost(char* number){
 	fclose(f);
 	free(newFile);
 	return 1;
+}
+int isPostByNameDb(char* num, char* name){
+	FILE* f=fopen("posts.txt","r");
+	if(f==NULL)
+		return 0;
+	char buff[1024];
+	strncpy(buff,"",1024);
+	char n[1024];
+	strncpy(n,"",1024);
+	char namae[1024];
+	strncpy(namae,"",1024);
+	while(fgets(buff,1024,f)!=NULL){
+		strncpy(n,"",1024);
+		strncpy(namae,"",1024);
+		char* tok=strtok(buff,";");
+		if(tok!=NULL){
+			strcpy(n,tok);
+			tok=strtok(NULL,";");
+			if(tok!=NULL){
+				tok=strtok(NULL,";");
+				if(tok!=NULL){
+					if(strcmp(n,num)==0 && strcmp(name,namae)==0){
+						printf("%s=>%s\n%s=>%s\n",n,num,namae,name);
+						fclose(f);
+						return 1;
+					}
+				}
+			}
+		}
+		strncpy(buff,"",1024);
+	}
+	return 0;
 }
