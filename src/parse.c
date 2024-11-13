@@ -124,6 +124,8 @@ int checkCookieValid(char* cookie){
 	}
 	printf("%s\n",pass);
 	FILE *f=fopen("acc.txt","r");
+	if(f==NULL)
+		return 0;
 	char  buff[1024];
 	strncpy(buff,"",1024);
 
@@ -187,4 +189,27 @@ char* url2txt(char* string){
 			out[i-back]=string[i];
 	}
 	return out;
+}
+char* escapeBrackets(char* string){
+	char* new=malloc(256*4+1);
+	strncpy(new,"",256*4);
+	size_t shift=0;
+	for(int i=0;i<strlen(string);i++){
+		if(string[i]=='<'){
+			new[i+shift]='&';
+			new[i+shift+1]='l';
+			new[i+shift+2]='t';
+			new[i+shift+3]=';';
+			shift+=2;
+		} else if(string[i]=='>'){
+			new[i+shift]='&';
+			new[i+shift+1]='g';
+			new[i+shift+2]='t';
+			new[i+shift+3]=';';
+			shift+=2;
+		}
+		else
+			new[i+shift]=string[i];
+	}
+	return new;
 }

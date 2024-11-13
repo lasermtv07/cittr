@@ -69,6 +69,11 @@ int loginDb(char* login,char* pass){
 	return 0;
 }
 int writePostDb(char* name,char* content){
+	if(content[0]==0 || content[0]=='\n')
+		return 0;
+	char toWrite[256];
+	strncpy(toWrite,"",256);
+	strncpy(toWrite,content,256);
 	time_t now=time(NULL);
 	char time[100];
 	struct tm tm_now;
@@ -102,7 +107,7 @@ int writePostDb(char* name,char* content){
 		return 1;
 	}
 	
-	fprintf(f,"%d;%s;%s;%s\n%s",max,time,name,content,file);
+	fprintf(f,"%d;%s;%s;%s\n%s",max,time,name,toWrite,file);
 	free(file);
 	fclose(f);
 
@@ -127,6 +132,11 @@ char* readToHtmlDb(int ad,char* isName){
 	char buff[1025];
 	strncpy(buff,"",1024);
 	FILE *f=fopen("posts.txt","r");
+	char* e=malloc(1);
+	e[0]=0;
+	if(f==NULL)
+		return e;
+	free(e);
 	char* posts=malloc(1);
 	posts[0]=0;
 

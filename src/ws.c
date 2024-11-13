@@ -177,10 +177,12 @@ int main(){
 
 								printf("POSTING:%s\n",nodePost);
 								char* parsed=url2txt(nodePost);
-								char* nulled=myNl2br(parsed);
+								char* escaped=escapeBrackets(parsed);
+								char* nulled=myNl2br(escaped);
 								writePostDb(namae,nulled);
 								free(parsed);
 								free(nulled);
+								free(escaped);
 							}
 						}
 					}
@@ -201,6 +203,26 @@ int main(){
 				resp=malloc(strlen(toAdd)+1);
 				strcpy(resp,toAdd);
 			}
+		}
+		else if (strcmp(info.path,"/logout")==0){
+			free(resp);
+			char* toWrite="HTTP/1.1 303\nSet-Cookie: _\nLocation: /\n";
+			resp=malloc(strlen(toWrite));
+			strcpy(resp,toWrite);
+		}
+		if(strcmp(info.path,"/")==0 && strcmp(info.path,"/login.html")==0 && strcmp(info.path,"/register.html")){
+			if(verifyCookie(info.cookie)){
+				char* tmp2=malloc(strlen(info.cookie)+1);
+				strcpy(tmp2,info.cookie);
+				char* tok=strtok(tmp2,"~");
+				char* string=malloc(strlen(tok)+128);
+				sprintf(string,"<a href=logout >%s</a>",tok);
+				resp=myRepl(resp,"[[name]]",string);
+				free(tmp2);
+				free(string);
+			}
+			else
+				resp=myRepl(resp,"[[name]]","anon");
 		}
 		//printf("%s\n",resp);
 		printf("%s\n",info.cookie);
