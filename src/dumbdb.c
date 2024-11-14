@@ -289,7 +289,8 @@ int isPostByNameDb(char* num, char* name){
 			if(tok!=NULL){
 				tok=strtok(NULL,";");
 				if(tok!=NULL){
-					if(strcmp(n,num)==0 && strcmp(name,namae)==0){
+					//TODO: fix issue here (doesnt check password)
+					if(strcmp(n,num)==0 && strncmp(name,namae,strlen(namae))==0){
 						printf("%s=>%s\n%s=>%s\n",n,num,namae,name);
 						fclose(f);
 						return 1;

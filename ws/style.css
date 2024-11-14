@@ -1,4 +1,43 @@
-body{
-    background-color: black;
-    color:green;
+
+textarea {
+    width: 100%;
+    background-color:#757575;
+    color:#fffde3;
+}
+body {
+    background-color:#383838;
+    color:#fffde3;
+    margin:0;
+}
+a {
+    color:#fffde3;
+
+}
+a:hover {
+    color:red;
+
+}
+.links {
+    padding-left: 40px;
+    position:relative;
+    top:-8px;
+    font-weight:bold;
+    font-size:1.1em;
+}
+.main {
+    width:50%;
+    margin:auto;
+    padding-top:75px;
+}
+.nav h1 {
+    margin:0;
+    padding:0;
+    display:inline;
+    position:relative;
+    top:-2px;
+}
+.nav {
+    background-color:#bfb509;
+    position:fixed;
+    width:100% !important;
 }

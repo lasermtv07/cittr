@@ -13,8 +13,10 @@ a UNIX system
 - clone the repo
 - `make`
 
-## todo
+## todo/planned
 - do CSS
+- add likes
+- add themes switching
 
 ## license
 MIT

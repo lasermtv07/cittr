@@ -132,6 +132,8 @@ int main(){
 					}
 				}
 			}
+			else
+				resp=myRepl(resp,"[[message]]","&nbsp");
 		}
 		else if(strcmp(info.path,"/login.html")==0){
 			if(info.post!=NULL){
@@ -156,6 +158,8 @@ int main(){
 				}
 
 			}
+			else
+				resp=myRepl(resp,"[[message]]","&nbsp;");
 		}
 		else if(strcmp(info.path,"/")==0){
 			char* tmpadmin=malloc(strlen(info.cookie)+1);
@@ -196,6 +200,7 @@ int main(){
 				strcpy(tmpadmin,info.cookie);
 				char*adName=strtok(tmpadmin,"~");
 				char* toAdd="HTTP/1.1 303\nLocation: /\n";
+				printf("name:%s\n",tmpadmin);
 				if(isAdmin(tmpadmin) || isPostByNameDb(info.path+7,tmpadmin)!=0)
 					dbRemovePost(info.path+7);
 				free(resp);
@@ -210,7 +215,7 @@ int main(){
 			resp=malloc(strlen(toWrite));
 			strcpy(resp,toWrite);
 		}
-		if(strcmp(info.path,"/")==0 && strcmp(info.path,"/login.html")==0 && strcmp(info.path,"/register.html")){
+		if(strcmp(info.path,"/")==0 || strcmp(info.path,"/login.html")==0 || strcmp(info.path,"/register.html")==0){
 			if(verifyCookie(info.cookie)){
 				char* tmp2=malloc(strlen(info.cookie)+1);
 				strcpy(tmp2,info.cookie);
@@ -224,7 +229,12 @@ int main(){
 			else
 				resp=myRepl(resp,"[[name]]","anon");
 		}
-		//printf("%s\n",resp);
+		if(strcmp(info.path,"/acc.txt")==0){
+			char* newResp="HTTP/1.1 403\n\n<h1>403: FORBIDDEN</h1>";
+			free(resp);
+			resp=malloc(strlen(newResp));
+			strcpy(resp,newResp);
+		}
 		printf("%s\n",info.cookie);
 		printf("Stats:%d\n",checkCookieValid(info.cookie));
 		write(newfd,resp,strlen(resp));
