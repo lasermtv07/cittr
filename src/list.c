@@ -30,7 +30,6 @@ void addNode(listNode* a,char* key,char* value){
 		 a->next=newNode(key,value);
 	
 }
-
 //NOTE: returns pointer to the original string, ie. change modifies original string, too
 char* readNode(listNode* a,char* string){
 	listNode* i=a;
@@ -40,6 +39,24 @@ char* readNode(listNode* a,char* string){
 		i=i->next;
 	}
 	return NULL;
+}
+
+listNode* removeKey(listNode* a,char* key){
+	listNode* prev=a;
+	listNode* i=a->next;
+	while(i!=NULL){
+		if(strcmp(i->key,key)==0){
+			prev->next=i->next;
+			free(i);
+		if(prev->next==NULL)
+			return a;
+			i=prev->next;
+		}
+
+		prev=prev->next;
+		i=i->next;
+	}
+	return a;
 }
 char* readIndex(listNode* a,int index){
 	listNode* j=a;
@@ -77,6 +94,6 @@ listNode* deleteIndex(listNode* a,int index){
 void freeList(listNode* a){
 	if(a->next!=NULL)
 		freeList(a->next);
-
+	//printf("FREEING A NODE\n");
 	free(a);
 }
