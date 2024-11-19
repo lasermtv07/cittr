@@ -3,9 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include "list.c"
-
+//TODO: when message delete, delete like
 listNode* determineLine(char* line){
-    printf("LINE:%s\n",line);
+    //printf("LINE:%s\n",line);
     if(strlen(line)<2)
         return 0;
     char* str=malloc(strlen(line)+1);
@@ -137,6 +137,8 @@ char* getLikesPerComment(char* id){
     int count=0;
     while(fgets(buff,10240,f)!=NULL){
         listNode* a=determineLine(buff);
+        if(a==NULL)
+            continue;
         if(!(readNode(a,id)==NULL))
             count++;
         freeList(a);
@@ -147,4 +149,50 @@ char* getLikesPerComment(char* id){
     strncpy(out,"",64);
     sprintf(out,"%d",count);
     return out;
+}
+//TODO: fix, acting wierd
+int checkLiked(char* name,char* post){
+    FILE* f=fopen("acc.txt","r");
+    if(f==NULL)
+        return 0;
+    char buff[102400];
+    strncpy(buff,"",102400);
+    while(fgets(buff,102400,f)!=NULL){
+        if(strlen(buff)>3 && strncmp(name,buff+2,strlen(name)-1)==0){
+            listNode* a=determineLine(buff);
+            if(readNode(a,post)!=NULL){
+                freeList(a);
+                fclose(f);
+                return 1;
+            }
+            freeList(a);
+        }
+    strncpy(buff,"",102400);
+    }
+    fclose(f);
+    return 0;
+}
+void deleteAllLikesOf(char* post){
+    FILE* f=fopen("acc.txt","r");
+    if(f==NULL)
+        return;
+    char buff[102400];
+    strncpy(buff,"",102400);
+    while(fgets(buff,102400,f)!=NULL){
+        listNode* a=determineLine(buff);
+        if(readNode(a,post)!=NULL){
+            char* cpy=malloc(102400);
+            strncpy(cpy,"",102400);
+            strcpy(cpy,buff);
+            char* tok=strtok(cpy,";");
+            if(tok!=NULL){
+                tok=strtok(NULL,";");
+                if(tok!=NULL){
+                    liked(tok,post);
+                }
+            }
+        free(cpy);
+        }
+        freeList(a);
+    }
 }

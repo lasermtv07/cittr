@@ -201,8 +201,10 @@ int main(){
 				char*adName=strtok(tmpadmin,"~");
 				char* toAdd="HTTP/1.1 303\nLocation: /\n";
 				printf("name:%s\n",tmpadmin);
-				if(isAdmin(tmpadmin) || isPostByNameDb(info.path+7,tmpadmin)!=0)
+				if(isAdmin(tmpadmin) || isPostByNameDb(info.path+7,tmpadmin)!=0){
 					dbRemovePost(info.path+7);
+					deleteAllLikesOf(info.path+7);
+				}
 				free(resp);
 				free(tmpadmin);
 				resp=malloc(strlen(toAdd)+1);
@@ -215,6 +217,24 @@ int main(){
 			resp=malloc(strlen(toWrite));
 			strcpy(resp,toWrite);
 		}
+		else if(strncmp(info.path,"/like",strlen("/like"))==0){
+			if(strlen(info.path)>strlen("/like")){
+				if(verifyCookie(info.cookie)){
+					char* tt=malloc(strlen(info.cookie)+1);
+					strcpy(tt,info.cookie);
+					char* tk=strtok(info.cookie,"~");
+					if(tk!=NULL){
+						liked(tk,info.path+strlen("/like"));
+					}
+					free(tt);
+				}
+			}
+			free(resp);
+			const char* replResp="HTTP/1.1 303\nLocation: /\n";
+			resp=malloc(strlen(replResp)+1);
+			strcpy(resp,replResp);
+		}
+
 		if(strcmp(info.path,"/")==0 || strcmp(info.path,"/login.html")==0 || strcmp(info.path,"/register.html")==0){
 			if(verifyCookie(info.cookie)){
 				char* tmp2=malloc(strlen(info.cookie)+1);

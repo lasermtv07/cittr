@@ -1,8 +1,10 @@
+//TODO: fix login
 #pragma once
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include "likes.c"
 
 
 int registerDb(char* login,char* pass){
@@ -46,7 +48,7 @@ int registerDb(char* login,char* pass){
 	fclose(f);
 	free(login2);
 	f=fopen("acc.txt","a");
-	fprintf(f,"0;%s;%s\n",login,pass);
+	fprintf(f,"0;%s;%s;\n",login,pass);
 	fclose(f);
 	return 4;
 }
@@ -130,7 +132,9 @@ char* myNl2br(char* string){
 }
 char* readToHtmlDb(int ad,char* isName){
 	char buff[1025];
+	char buffCpy[1025];
 	strncpy(buff,"",1024);
+	strncpy(buffCpy,"",1024);
 	FILE *f=fopen("posts.txt","r");
 	char* e=malloc(1);
 	e[0]=0;
@@ -139,16 +143,17 @@ char* readToHtmlDb(int ad,char* isName){
 	free(e);
 	char* posts=malloc(1);
 	posts[0]=0;
-
 	char name[1024];
 	char date[1024];
 	char msg[1024];
 	char number[1024];
+
 	strncpy(name,"",1023);
 	strncpy(date,"",1023);
 	strncpy(msg,"",1023);
 	strncpy(number,"",1023);
 	while(fgets(buff,1024,f)!=NULL){
+		strcpy(buffCpy,buff);
 		strncpy(name,"",1023);
 		strncpy(date,"",1023);
 		strncpy(msg,"",1023);
@@ -182,8 +187,21 @@ char* readToHtmlDb(int ad,char* isName){
 			}
 			strcat(posts,"<br>");
 			strcat(posts,msg);
+			strcat(posts,"<br>");
+			char* tmp=getLikesPerComment(number);
+			strcat(posts,"<a href=like");
+			strcat(posts,number);
+			if(checkLiked(name,number))
+				strcat(posts,">Dislike (");
+			else
+				strcat(posts,">Like (");
+			strcat(posts,tmp);
+			strcat(posts,")</a>");
+			free(tmp);
 			strcat(posts,"<hr>");
+
 			strncpy(buff,"",1024);
+			strncpy(buffCpy,"",1024);
 		}
 	}
 	fclose(f);
