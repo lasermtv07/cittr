@@ -161,9 +161,11 @@ int checkLiked(char* name,char* post){
         if(strlen(buff)>3 && strncmp(name,buff+2,strlen(name)-1)==0){
             listNode* a=determineLine(buff);
             if(readNode(a,post)!=NULL){
-                freeList(a);
-                fclose(f);
-                return 1;
+                if(readNode(a,post)[0]>='0' && readNode(a,post)[0]<='9'){
+                    freeList(a);
+                    fclose(f);
+                    return 1;
+                }
             }
             freeList(a);
         }

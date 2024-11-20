@@ -14,8 +14,8 @@ a UNIX system
 - `make`
 
 ## todo/planned
-- do CSS
-- add likes
+- ~~do CSS~~
+- ~~add likes~~
 - add themes switching
 
 ## license

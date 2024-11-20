@@ -191,7 +191,7 @@ char* readToHtmlDb(int ad,char* isName){
 			char* tmp=getLikesPerComment(number);
 			strcat(posts,"<a href=like");
 			strcat(posts,number);
-			if(checkLiked(name,number))
+			if(checkLiked(isName,number))
 				strcat(posts,">Dislike (");
 			else
 				strcat(posts,">Like (");
