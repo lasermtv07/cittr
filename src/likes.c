@@ -158,7 +158,7 @@ int checkLiked(char* name,char* post){
     char buff[102400];
     strncpy(buff,"",102400);
     while(fgets(buff,102400,f)!=NULL){
-        if(strlen(buff)>3 && strncmp(name,buff+2,strlen(name)-1)==0){
+        if( name!=NULL && strlen(buff)>3 && strncmp(name,buff+2,strlen(name)-1)==0){
             listNode* a=determineLine(buff);
             if(readNode(a,post)!=NULL){
                 if(readNode(a,post)[0]>='0' && readNode(a,post)[0]<='9'){
